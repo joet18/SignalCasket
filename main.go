@@ -1,6 +1,8 @@
 package main
 import ("fmt"
         "bufio"
+        "io"
+        "time"
         "os")
 
 
@@ -18,10 +20,24 @@ func main() {
        os.Exit(1)
    }
     defer file.Close()
-   reader := bufio.NewReader(file)
-   line, err := reader.ReadString('\n')
-   fmt.Println("Line:", line)
-   fmt.Println("err:",err)
+     reader := bufio.NewReader(file)
+    for{
+        
+        line, err := reader.ReadString('\n')
+        fmt.Println("Line:", line)
+        fmt.Println("err:",err)
+        if err == io.EOF {
+            fmt.Println("waiting formare", err)
+            time.Sleep(1 * time.Second)
+            continue
+        }
+        
+        if err != nil {
+            fmt.Println("Error reading line:", err)
+            os.Exit(1)
+
+        }
+    }
 }
 func checkArgs()(string,error){
 
