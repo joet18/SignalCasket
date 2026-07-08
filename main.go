@@ -3,10 +3,24 @@ import ("fmt"
         "bufio"
         "io"
         "time"
-        "os")
+        "os"
+        "context"
+        "os/signal"
+        "syscall"
+    )
 
-
+     
 func main() {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+    sigCh := make(chan os.Signal, 1)
+    signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+    go func(){
+        <-sigCh;
+        fmt.Println("shutdown signal recived");cancel()
+    }()
+   
+
   fmt.Println("starting tailer..")
    path,err := checkArgs()
    if err != nil {
@@ -21,18 +35,22 @@ func main() {
    }
     defer file.Close()
      reader := bufio.NewReader(file)
-    for{
+    MainLoop:
+     for{
         
         line, err := reader.ReadString('\n')
         fmt.Println("Line:", line)
         fmt.Println("err:",err)
         if err == io.EOF {
             fmt.Println("waiting formare", err)
-            time.Sleep(1 * time.Second)
-            continue
-        }
-        
-        if err != nil {
+             select{
+        case <-ctx.Done():
+            fmt.Println("Exiting..")
+            break MainLoop
+        case <-time.After(1 * time.Second):
+            fmt.Println("Waiting")
+    }
+        }else if err != nil {
             fmt.Println("Error reading line:", err)
             os.Exit(1)
 
