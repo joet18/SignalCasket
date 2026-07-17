@@ -33,8 +33,9 @@ func main() {
    fmt.Println("Tailing file:", path)
    lineCh :=make(chan string)
    go func(){
-    http.HandleFunc("/status",statHandler);
-    http.ListenAndServe(":8080",nil)
+    http.HandleFunc("/logs",logsHandler)
+    http.HandleFunc("/status",statHandler)
+    err :=http.ListenAndServe(":8080",nil)
     if err != nil{
         fmt.Println("Http server error:", err)
     }
